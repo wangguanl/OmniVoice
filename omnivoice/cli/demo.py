@@ -173,7 +173,7 @@ def build_demo(
         ref_text=None,
     ):
         if not text or not text.strip():
-            return None, "Please enter the text to synthesize."
+            return None, "请输入要合成的文本。"
 
         gen_config = OmniVoiceGenerationConfig(
             num_step=int(num_step or 32),
@@ -231,32 +231,32 @@ def build_demo(
     """
 
     # Reusable: language dropdown component
-    def _lang_dropdown(label="Language (optional) / 语种 (可选)", value="Auto"):
+    def _lang_dropdown(label="语种（可选）", value="Auto"):
         return gr.Dropdown(
             label=label,
             choices=_ALL_LANGUAGES,
             value=value,
             allow_custom_value=False,
             interactive=True,
-            info="Keep as Auto to auto-detect the language.",
+            info="保持 Auto 以自动检测语言。",
         )
 
     # Reusable: optional generation settings accordion
     def _gen_settings():
-        with gr.Accordion("Generation Settings (optional)", open=False):
+        with gr.Accordion("生成设置（可选）", open=False):
             sp = gr.Slider(
                 0.5,
                 1.5,
                 value=1.0,
                 step=0.05,
-                label="Speed",
-                info="1.0 = normal. >1 faster, <1 slower. Ignored if Duration is set.",
+                label="语速",
+                info="1.0 = 正常。>1 更快，<1 更慢。设置时长后此项失效。",
             )
             du = gr.Number(
                 value=None,
-                label="Duration (seconds)",
+                label="时长（秒）",
                 info=(
-                    "Leave empty to use speed. Set a fixed duration to override speed."
+                    "留空则使用语速。设置固定时长会覆盖语速。"
                 ),
             )
             ns = gr.Slider(
@@ -264,32 +264,31 @@ def build_demo(
                 64,
                 value=32,
                 step=1,
-                label="Inference Steps",
-                info="Default: 32. Lower = faster, higher = better quality.",
+                label="推理步数",
+                info="默认 32。越低越快，越高质量越好。",
             )
             dn = gr.Checkbox(
-                label="Denoise",
+                label="去噪",
                 value=True,
-                info="Default: enabled. Uncheck to disable denoising.",
+                info="默认开启。取消勾选可关闭去噪。",
             )
             gs = gr.Slider(
                 0.0,
                 4.0,
                 value=2.0,
                 step=0.1,
-                label="Guidance Scale (CFG)",
-                info="Default: 2.0.",
+                label="引导系数（CFG）",
+                info="默认 2.0。",
             )
             pp = gr.Checkbox(
-                label="Preprocess Prompt",
+                label="预处理参考音频",
                 value=True,
-                info="apply silence removal and trimming to the reference "
-                "audio, add punctuation in the end of reference text (if not already)",
+                info="对参考音频做静音去除与裁剪，并在参考文本末尾补标点（如缺失）。",
             )
             po = gr.Checkbox(
-                label="Postprocess Output",
+                label="后处理输出",
                 value=True,
-                info="Remove long silences from generated audio.",
+                info="去除生成音频中的长静音。",
             )
         return ns, gs, dn, sp, du, pp, po
 
@@ -298,13 +297,13 @@ def build_demo(
             """
 # OmniVoice Demo
 
-State-of-the-art text-to-speech model for **600+ languages**, supporting:
+支持 **600+ 种语言** 的先进文本转语音（TTS）模型，提供：
 
-- **Voice Clone** — Clone any voice from a reference audio
-- **Voice Design** — Create custom voices with speaker attributes
+- **声音克隆** — 用一段参考音频克隆任意音色
+- **声音设计** — 通过说话人属性自定义音色
 
-Built with [OmniVoice](https://github.com/k2-fsa/OmniVoice)
-by Xiaomi AI Lab Next-gen Kaldi team.
+由 [OmniVoice](https://github.com/k2-fsa/OmniVoice)
+（小米 AI Lab Next-gen Kaldi 团队）构建。
 """
         )
 
@@ -312,33 +311,32 @@ by Xiaomi AI Lab Next-gen Kaldi team.
             # ==============================================================
             # Voice Clone
             # ==============================================================
-            with gr.TabItem("Voice Clone"):
+            with gr.TabItem("声音克隆"):
                 with gr.Row():
                     with gr.Column(scale=1):
                         vc_text = gr.Textbox(
-                            label="Text to Synthesize / 待合成文本",
+                            label="待合成文本",
                             lines=4,
-                            placeholder="Enter the text you want to synthesize...",
+                            placeholder="输入要合成的文本...",
                         )
                         vc_ref_audio = gr.Audio(
-                            label="Reference Audio / 参考音频",
+                            label="参考音频",
                             type="filepath",
                             elem_classes="compact-audio",
                         )
                         gr.Markdown(
                             "<span style='font-size:0.85em;color:#888;'>"
-                            "Recommended: 3–10 seconds audio. "
+                            "建议使用 3–10 秒的音频。"
                             "</span>"
                         )
                         vc_ref_text = gr.Textbox(
-                            label=("Reference Text (optional) / 参考音频文本（可选）"),
+                            label=("参考音频文本（可选）"),
                             lines=2,
-                            placeholder="Transcript of the reference audio. Leave empty"
-                            " to auto-transcribe via ASR models.",
+                            placeholder="参考音频的转写文本。留空则自动用 ASR 模型转写。",
                         )
-                        vc_lang = _lang_dropdown("Language (optional) / 语种 (可选)")
-                        with gr.Accordion("Instruct (optional)", open=False):
-                            vc_instruct = gr.Textbox(label="Instruct", lines=2)
+                        vc_lang = _lang_dropdown("语种（可选）")
+                        with gr.Accordion("指令（可选）", open=False):
+                            vc_instruct = gr.Textbox(label="指令", lines=2)
                         (
                             vc_ns,
                             vc_gs,
@@ -348,13 +346,13 @@ by Xiaomi AI Lab Next-gen Kaldi team.
                             vc_pp,
                             vc_po,
                         ) = _gen_settings()
-                        vc_btn = gr.Button("Generate / 生成", variant="primary")
+                        vc_btn = gr.Button("生成", variant="primary")
                     with gr.Column(scale=1):
                         vc_audio = gr.Audio(
-                            label="Output Audio / 合成结果",
+                            label="合成结果",
                             type="numpy",
                         )
-                        vc_status = gr.Textbox(label="Status / 状态", lines=2)
+                        vc_status = gr.Textbox(label="状态", lines=2)
 
                 def _clone_fn(
                     text, lang, ref_aud, ref_text, instruct, ns, gs, dn, sp, du, pp, po
@@ -397,13 +395,13 @@ by Xiaomi AI Lab Next-gen Kaldi team.
             # ==============================================================
             # Voice Design
             # ==============================================================
-            with gr.TabItem("Voice Design"):
+            with gr.TabItem("声音设计"):
                 with gr.Row():
                     with gr.Column(scale=1):
                         vd_text = gr.Textbox(
-                            label="Text to Synthesize / 待合成文本",
+                            label="待合成文本",
                             lines=4,
-                            placeholder="Enter the text you want to synthesize...",
+                            placeholder="输入要合成的文本...",
                         )
                         vd_lang = _lang_dropdown()
 
@@ -428,13 +426,13 @@ by Xiaomi AI Lab Next-gen Kaldi team.
                             vd_pp,
                             vd_po,
                         ) = _gen_settings()
-                        vd_btn = gr.Button("Generate / 生成", variant="primary")
+                        vd_btn = gr.Button("生成", variant="primary")
                     with gr.Column(scale=1):
                         vd_audio = gr.Audio(
-                            label="Output Audio / 合成结果",
+                            label="合成结果",
                             type="numpy",
                         )
-                        vd_status = gr.Textbox(label="Status / 状态", lines=2)
+                        vd_status = gr.Textbox(label="状态", lines=2)
 
                 def _build_instruct(groups):
                     """Extract instruct text from UI dropdowns.
